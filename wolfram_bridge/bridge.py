@@ -701,6 +701,72 @@ class WolframDataBridge:
         """
         return self._execute_wl(code)
 
+    def get_brain_connectivity(self, region: str) -> dict:
+        """Fetch connectivity and structural properties for a brain region.
+        
+        Args:
+            region: e.g., "Amygdala", "Hippocampus", "PrefrontalCortex"
+        """
+        region = _sanitize_wl_string(region)
+        code = f"""
+        Module[{{ent, clean}},
+            ent = Entity["AnatomicalStructure", "{region}"];
+            clean[val_] := If[NumberQ[val], val, If[Head[val] === Quantity, QuantityMagnitude[val], 0]];
+            <|
+                "name" -> CommonName[ent],
+                "part_of" -> CommonName /@ ent["PartOf"],
+                "connections" -> Length[ent["InputConnections"]] + Length[ent["OutputConnections"]],
+                "volume" -> clean[Mean[ent["Volume"]]],
+                "description" -> ent["Description"]
+            |>
+        ]
+        """
+        return self._execute_wl(code)
+
+    def get_thinker_metadata(self, name: str) -> dict:
+        """Fetch historical and intellectual metadata for a thinker.
+        
+        Args:
+            name: e.g., "Leonhard Euler", "Andre Breton", "Stanislas Dehaene"
+        """
+        name = _sanitize_wl_string(name)
+        code = f"""
+        Module[{{ent, cleanDate}},
+            dateClean[d_] := If[Head[d] === DateObject, DateString[d, "Year"], "Unknown"];
+            ent = Interpreter["Person"]["{name}"];
+            If[FailureQ[ent], 
+                <| "name" -> "{name}", "error" -> "Not found" |>,
+                <|
+                    "name" -> CommonName[ent],
+                    "birth_year" -> dateClean[ent["BirthDate"]],
+                    "death_year" -> dateClean[ent["DeathDate"]],
+                    "notable_works" -> ent["NotableWorks"],
+                    "occupations" -> ent["Occupations"]
+                |>
+            ]
+        ]
+        """
+        return self._execute_wl(code)
+
+    def get_symbol_etymology(self, word: str) -> dict:
+        """Fetch etymological and linguistic metadata for a word or symbol.
+        
+        Args:
+            word: e.g., "Capital", "Risk", "Grief"
+        """
+        word = _sanitize_wl_string(word)
+        code = f"""
+        Module[{{ent}},
+            <|
+                "word" -> "{word}",
+                "definitions" -> WordData["{word}", "Definitions"],
+                "origins" -> WordData["{word}", "Etymology"],
+                "word_forms" -> WordData["{word}", "Forms"]
+            |>
+        ]
+        """
+        return self._execute_wl(code)
+
     def query_custom(self, wl_expression: str) -> Any:
         """Run a custom WL expression and return the result.
 
