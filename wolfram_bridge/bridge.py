@@ -767,6 +767,66 @@ class WolframDataBridge:
         """
         return self._execute_wl(code)
 
+    def get_life_expectancy(self, country: str = "UnitedStates", age: Optional[int] = None) -> dict:
+        """Fetch average life expectancy, optionally for a specific age.
+        
+        This grounds the "How to Live Much Longer" baseline parameters.
+        """
+        country = _sanitize_wl_string(country)
+        age_code = f', age -> {age}' if age else ""
+        code = f"""
+        Module[{{ent, val, clean}},
+            ent = Entity["Country", "{country}"];
+            clean[v_] := If[NumberQ[v], v, If[Head[v] === Quantity, QuantityMagnitude[v], 0]];
+            val = ent["LifeExpectancy"{age_code}];
+            <|
+                "country" -> "{country}",
+                "age" -> If[{'True' if age else 'False'}, {age or 0}, "baseline"],
+                "life_expectancy_years" -> clean[val]
+            |>
+        ]
+        """
+        return self._execute_wl(code)
+
+    def get_mitochondrial_gene_data(self, gene_symbol: str) -> dict:
+        """Fetch biological functions and properties for mitochondrial genes.
+        
+        Grounds the mitochondrial Connection in Cramer's ODE.
+        """
+        gene_symbol = _sanitize_wl_string(gene_symbol)
+        code = f"""
+        Module[{{ent}},
+            ent = Entity["Gene", "{gene_symbol}"];
+            <|
+                "symbol" -> "{gene_symbol}",
+                "name" -> CommonName[ent],
+                "biological_processes" -> ent["BiologicalProcesses"],
+                "cellular_components" -> ent["CellularComponents"],
+                "chromosome" -> ent["Chromosome"]
+            |>
+        ]
+        """
+        return self._execute_wl(code)
+
+    def get_metabolic_pathway_data(self, pathway: str) -> dict:
+        """Fetch data for metabolic pathways (e.g., "OxidativePhosphorylation").
+        
+        Grounds the "Neuronal Machine" metabolic constraints.
+        """
+        pathway = _sanitize_wl_string(pathway)
+        code = f"""
+        Module[{{ent}},
+            ent = Entity["MetabolicPathway", "{pathway}"];
+            <|
+                "name" -> CommonName[ent],
+                "description" -> ent["Description"],
+                "enzyme_count" -> Length[ent["Enzymes"]],
+                "reaction_count" -> Length[ent["Reactions"]]
+            |>
+        ]
+        """
+        return self._execute_wl(code)
+
     def query_custom(self, wl_expression: str) -> Any:
         """Run a custom WL expression and return the result.
 
