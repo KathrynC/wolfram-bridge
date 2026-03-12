@@ -827,6 +827,44 @@ class WolframDataBridge:
         """
         return self._execute_wl(code)
 
+    def get_biological_timeline(self, entity: str) -> dict:
+        """Fetch developmental stages and timelines for an organism.
+        
+        Args:
+            entity: e.g., "XenopusLaevis", "HomoSapiens"
+        """
+        entity = _sanitize_wl_string(entity)
+        code = f"""
+        Module[{{ent, stages}},
+            ent = Interpreter["Species"]["{entity}"];
+            <|
+                "name" -> CommonName[ent],
+                "lifespan" -> QuantityMagnitude[ent["AverageLifespan"]],
+                "developmental_stages" -> ent["DevelopmentalStages"]
+            |>
+        ]
+        """
+        return self._execute_wl(code)
+
+    def get_chemical_properties(self, name: str) -> dict:
+        """Fetch energy density and thermodynamic properties for a chemical.
+        
+        Args:
+            name: e.g., "ATP", "Glucose", "Vitellogenin"
+        """
+        name = _sanitize_wl_string(name)
+        code = f"""
+        Module[{{ent, clean}},
+            clean[v_] := If[NumberQ[v], v, If[Head[v] === Quantity, QuantityMagnitude[v], 0]];
+            <|
+                "name" -> "{name}",
+                "molar_mass" -> clean[ChemicalData["{name}", "MolarMass"]],
+                "energy_content" -> clean[ChemicalData["{name}", "StandardEnthalpyOfFormation"]]
+            |>
+        ]
+        """
+        return self._execute_wl(code)
+
     def query_custom(self, wl_expression: str) -> Any:
         """Run a custom WL expression and return the result.
 
