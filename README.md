@@ -7,9 +7,11 @@ This tool was originally developed as part of the **NADJA** "Absolute Reality" e
 ## Features
 
 - **Grounded Facts:** Fetch ticker metadata, macro indicators, and geospatial data directly from Wolfram.
+- **Biological & Neuro Grounding:** Query `AnatomicalStructure` for brain connectivity, `TaxonomicSpecies` for life-cycles, and `MetabolicPathway` for energy constraints.
 - **Topological Analysis:** Compute path crossings and invariants for complex trajectories.
 - **Geometric Reasoning:** Analyze polyhedral symmetry and convexity.
 - **Cross-Domain Data:** Access specific data for anatomy, chemistry, linguistics, and celestial mechanics.
+- **Intellectual Lineage:** Fetch birth/death dates and notable works for historical thinkers via `Person` data.
 - **Sanitized Execution:** Bulletproof sanitization of Wolfram Language (WL) code to prevent command injection.
 - **Computable Surrealism:** Tools for mapping mythological motifs to Thompson Motif-Index IDs.
 
@@ -37,13 +39,17 @@ bridge = WolframDataBridge()
 spy_data = bridge.get_ticker_metadata("SPY")
 print(spy_data["description"])
 
-# Fetch Macro Indicators
-us_macro = bridge.get_macro_indicators("UnitedStates")
-print(f"GDP: {us_macro['gdp']}, Inflation: {us_macro['inflation']}")
+# Fetch Brain Connectivity (Dehaene enrichment)
+amygdala = bridge.get_brain_connectivity("Amygdala")
+print(f"Connections: {amygdala['connections']}, Volume: {amygdala['volume']}")
 
-# Fetch Weather Anomaly
-ny_weather = bridge.get_weather_anomaly("NewYork")
-print(f"Temperature Anomaly: {ny_weather['anomaly']}°C")
+# Fetch Life Expectancy (Aging simulator grounding)
+life = bridge.get_life_expectancy("UnitedStates", age=70)
+print(f"Remaining Life Expectancy: {life['life_expectancy_years']} years")
+
+# Fetch Thinker Metadata (Memory Palace Guardians)
+euler = bridge.get_thinker_metadata("Leonhard Euler")
+print(f"Notable Works: {euler['notable_works']}")
 
 # Run Custom WL Expression
 result = bridge.query_custom('ChemicalData["Ethanol", "BoilingPoint"]')
